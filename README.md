@@ -20,7 +20,7 @@ Flask is <b>web development framwork</b> developed in Python.
 
 Micro-framework are the opposite of full-stack frameworks, which also offer additiona modules for features such as authenitication, database ORM, input validation and sanitization, etc
 
-## Who is Using Flask? 
+## Who is Using Flask?
 
 ### Netflix
 
@@ -36,11 +36,11 @@ Source: [Stackshare](https://stackshare.io/reddit/reddit)
 
 Airbnb uses Flask for many of its projects such as [Airflow](https://airbnb.io/projects/airflow/)
 
-### Lyft 
+### Lyft
 
 Lyfy uses Flask's signaling module to supply data to the web UI.
 
-### Mozilla 
+### Mozilla
 
 Mozilla has used Flask in many of their projects as well. specifically to utillize its easy CRUD support.
 
@@ -56,15 +56,15 @@ Uber's [Marketplace](https://support-uber.com/) team has also used Flask to cont
 
 <br>
 <div align="center">
-	<img src="img/client_server1">
+	<img src="img/client_server1.png">
 	<br>
 	<code>Conversation between a client and a manager at a restaurant.</code>
 </div>
-<br> 
+<br>
 
 <br>
-<div algin="center">
-	<img src="img/client_server2">
+<div align="center">
+	<img src="img/client_server2.png">
 	<br>
 	<code>Conversation between a client and a waiter at a restaurant.</code>
 </div>
@@ -124,45 +124,134 @@ The <code>Web Server Gateway Interface</code>, or more commonly known as <code>W
 
 Jinja is a template language used in Python
 
+# Database
+
+> <h2>📌 What is an ORM or object relation mapper?</h2>
+An ORM makes writing SQL queries easier for a programmer. It enables us to write queries in an object-oriented language, and then the ORM automatically translates it to SQL and retrieves the results in the form of objects!
+
+> <h3>Introduction to SQLAlchemy</h3>
+SQLAlchemy is a library in Python which allows us to manipulate SQL. It provides us with an easy to use ORM for SQL databases.
+
+> <h3>Introduction to Flask-SQLAlchemy</h3>
+Flask-SQLAlchemy is a Flask specific library that integrates the SQLAlchemy support with Flask applications. It provides extra helpers for common tasks that make it easier to work with Flask.
+
+```py
+# One-to-Many Relationship between Employee and Department
+class Employee(db.Model):
+    employee_id = db.Column(db.Integer, primary_key = True)
+    first_name = db.Column(db.String(50), nullable = False)
+    last_name = db.Column(db.String(50), nullable = False)
+    department_name = db.Column(db.String, db.ForeignKey('department.name'), nullable = False)
+
+class Department(db.Model):
+    name = db.Column(db.String(50), primary_key = True, nullable = False)
+    location = db.Column(db.String(120), nullable = False)
+    employees = db.relationship('Employee', backref = 'department')
+
+class Project(db.Model):
+    project_id = db.Column(db.Integer, primary_key = True, nullable = False)
+    name = db.Column(db.String(100), nullable = False)
+```
+
+```py
+# One-to-One Relationship between Employee and Department
+class Employee(db.Model):
+    employee_id = db.Column(db.Integer, primary_key = True)
+    first_name = db.Column(db.String(50), nullable = False)
+    last_name = db.Column(db.String(50), nullable = False)
+    department_name = db.Column(db.String, db.ForeignKey('department.name'), nullable = False)
+    is_head_of = db.Column(db.String, db.ForeignKey('department.name'), nullable=True)
+
+class Department(db.Model):
+    name = db.Column(db.String(50), primary_key=True, nullable=False)
+    location = db.Column(db.String(120), nullable=False)
+    employees = db.relationship('Employee', backref='department')
+    head = db.relationship('Employee', backref='head_of_department', uselist=False)
+
+class Project(db.Model):
+    project_id = db.Column(db.Integer, primary_key=True, nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+```
+
+```py
+# Many-to-Many Relationship between Employee and Project
+class Employee(db.Model):
+    employee_id = db.Column(db.Integer, primary_key = True)
+    first_name = db.Column(db.String(50), nullable = False)
+    last_name = db.Column(db.String(50), nullable = False)
+    department_name = db.Column(db.String, db.ForeignKey('department.name'), nullable = False)
+    is_head_of = db.Column(db.String, db.ForeignKey('department.name'), nullable=True)
+
+class Department(db.Model):
+    name = db.Column(db.String(50), primary_key=True, nullable=False)
+    location = db.Column(db.String(120), nullable=False)
+    employees = db.relationship('Employee', backref='department')
+    head = db.relationship('Employee', backref='head_of_department', uselist=False)
+
+class Project(db.Model):
+    project_id = db.Column(db.Integer, primary_key=True, nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    members = db.relationship('Employee', secondary=project_members, backref='projects')
+
+project_members = db.Table('project_members',
+    db.Column('employee_id', db.Integer, db.ForeignKey('employee.employee_id'), primary_key=True),
+    db.Column('project_id', db.Integer, db.ForeignKey('project.project_id'), primary_key=True)
+)
+```
+
+# Operation on models
+
+## Insertion
+
+```py
+from flask import Flask, render_template
+from flask_sqlalchemy import SQLAlchemy
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///example.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
+class User(db.Model):
+    email = db.Column(db.String, primary_key=True, unique=True, nullable=False)
+    password = db.Column(db.String, nullable=False)
+
+db.create_all()
+
+archie = User(email = "archie.andrews@email.com", password = "football4life")
+veronica = User(email = "veronica.lodge@email.com", password = "fashiondiva")
+
+db.session.add(archie)
+db.session.add(veronica)
+
+try:
+    db.session.commit()
+except Exception as e:
+    db.session.rollback()
+finally:
+    db.session.close()
+```
+
+<br>
+<div align="center">
+	<img src="img/img1.png">
+	<br>
+</div>
+<br>
 
 
+<br>
+<div align="center">
+	<img src="img/img2.png">
+	<br>
+</div>
+<br>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+<br>
+<div align="center">
+	<img src="img/package.png">
+	<br>
+	<code>Packages to Further Explore</code>
+</div>
+<br>
